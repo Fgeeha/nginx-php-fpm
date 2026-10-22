@@ -4,6 +4,7 @@
 
 IMAGE ?= nginx-php-fpm:local
 PLATFORM ?=
+BUILDER ?= default
 
 # Справка
 help: ## Показать список целей
@@ -12,7 +13,7 @@ help: ## Показать список целей
 
 # Сборка Docker
 build: ## Собрать образ с обновлением базового образа
-	docker buildx build --builder default $(if $(PLATFORM),--platform $(PLATFORM)) --load --pull -t $(IMAGE) .
+	docker buildx build --builder $(BUILDER) $(if $(PLATFORM),--platform $(PLATFORM)) --load --pull -t $(IMAGE) .
 
 # Проверка
 test: ## Проверить готовый образ и HTTP-запрос к PHP-FPM

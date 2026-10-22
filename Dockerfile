@@ -11,7 +11,7 @@ ENV LUAJIT_INC=/usr/include/luajit-2.1
 
 # resolves #166
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
-RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community gnu-libiconv
+RUN apk add --no-cache gnu-libiconv
 
 
 # INstall nginx + lua and devel kit
@@ -71,6 +71,8 @@ RUN apk add --no-cache --virtual .sys-deps \
       --with-jpeg && \
     docker-php-ext-install gd && \
     docker-php-ext-install pdo_mysql mysqli pdo_sqlite pgsql pdo_pgsql exif intl xsl soap zip && \
+    # Версии PECL закреплены ради совместимости с образом 3.1.6 (см. docs/patchnotes/php-8.2.35.md);
+    # старые Redis/Xdebug собираются только в режиме C17
     export CFLAGS="$PHP_CFLAGS -std=gnu17" && \
     pecl install -o -f xdebug-3.2.1 && \
     pecl install -o -f redis-5.3.7 && \
