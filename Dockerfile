@@ -32,6 +32,7 @@ RUN echo @testing https://dl-cdn.alpinelinux.org/alpine/edge/testing >> /etc/apk
     libpq \
     git \
     python3 \
+    py3-pip \
     certbot \
     dialog \
     autoconf \
@@ -70,9 +71,10 @@ RUN apk add --no-cache --virtual .sys-deps \
       --with-jpeg && \
     docker-php-ext-install gd && \
     docker-php-ext-install pdo_mysql mysqli pdo_sqlite pgsql pdo_pgsql exif intl xsl soap zip && \
-    pecl install -o -f xdebug && \
-    pecl install -o -f redis && \ 
-    pecl install -o -f mongodb && \
+    export CFLAGS="$PHP_CFLAGS -std=gnu17" && \
+    pecl install -o -f xdebug-3.2.1 && \
+    pecl install -o -f redis-5.3.7 && \
+    pecl install -o -f mongodb-1.21.12 && \
     echo "extension=redis.so" > /usr/local/etc/php/conf.d/redis.ini && \
     echo "extension=mongodb.so" > /usr/local/etc/php/conf.d/mongodb.ini && \
     echo "zend_extension=xdebug" > /usr/local/etc/php/conf.d/xdebug.ini && \
@@ -86,6 +88,12 @@ RUN apk add --no-cache --virtual .sys-deps \
     mkdir -p /etc/letsencrypt/webrootauth && \
     apk del gcc musl-dev linux-headers libffi-dev augeas-dev python3-dev make autoconf && \
     apk del .sys-deps
+
+RUN apk add --no-cache --virtual .ftp-build-deps openssl-dev && \
+    docker-php-ext-configure ftp --with-openssl-dir && \
+    docker-php-ext-install ftp && \
+    apk del .ftp-build-deps && \
+    docker-php-source delete
 
 ADD conf/supervisord.conf /etc/supervisord.conf
 
@@ -126,7 +134,7 @@ RUN echo "cgi.fix_pathinfo=0" > ${php_vars} &&\
         ${fpm_conf}
 #    ln -s /etc/php7/php.ini /etc/php7/conf.d/php.ini && \
 RUN cp /usr/local/etc/php/php.ini-development /usr/local/etc/php/php.ini && \
-	rm /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini && \
+	rm -f /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini && \
 	sed -i \
 	    -e "s/;opcache/opcache/g" \
 	    -e "s/;zend_extension=opcache/zend_extension=opcache/g" \

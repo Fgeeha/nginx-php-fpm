@@ -1,8 +1,9 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help build test check
+.PHONY: help build test test-compat test-portal check
 
 IMAGE ?= nginx-php-fpm:local
+PLATFORM ?=
 
 # Справка
 help: ## Показать список целей
@@ -11,12 +12,18 @@ help: ## Показать список целей
 
 # Сборка Docker
 build: ## Собрать образ с обновлением базового образа
-	docker build --pull -t $(IMAGE) .
+	docker buildx build --builder default $(if $(PLATFORM),--platform $(PLATFORM)) --load --pull -t $(IMAGE) .
 
 # Проверка
 test: ## Проверить готовый образ и HTTP-запрос к PHP-FPM
 	sh tests/smoke.sh $(IMAGE)
 	OPcache=1 sh tests/smoke.sh $(IMAGE)
 
+test-compat: ## Проверить прежние настройки и сценарии запуска
+	sh tests/compat.sh $(IMAGE)
+
+test-portal: ## Проверить внешний PHP-проект из APP_DIR без внешней сети
+	sh tests/portal.sh $(IMAGE) "$(APP_DIR)"
+
 check: build ## Собрать образ и выполнить проверки
-	$(MAKE) test IMAGE=$(IMAGE)
+	$(MAKE) test test-compat IMAGE=$(IMAGE)
