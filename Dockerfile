@@ -14,8 +14,9 @@ ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
 RUN apk add --no-cache gnu-libiconv
 
 
-# INstall nginx + lua and devel kit
-RUN apk add --no-cache nginx \
+# Install nginx + lua and devel kit
+# nginx>=1.30.7: HTTP/2 RCE fixes; the constraint also busts the layer cache
+RUN apk add --no-cache 'nginx>=1.30.7' \
     nginx-mod-http-lua \
     nginx-mod-devel-kit
 
